@@ -1,4 +1,4 @@
-# Install script for directory: D:/HC/Desktop/STM32-project/stepMotorRcciprocating/source
+# Install script for directory: D:/HC/Desktop/stepperMotor-Rcciprocating/source
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/HC/Desktop/STM32-project/stepMotorRcciprocating/source/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/HC/Desktop/stepperMotor-Rcciprocating/source/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
