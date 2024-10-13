@@ -245,7 +245,7 @@ int main(void)
           if(needMoveUp == 1)
           {
               needMoveUp = 0;
-              HAL_Delay(500);
+              while(HAL_GPIO_ReadPin(TrigUp_GPIO_Port,TrigUp_Pin)==GPIO_PIN_SET){}
               sendPulse(gNum);
           }
       }
