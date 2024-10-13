@@ -71,6 +71,7 @@ static uint8_t direction; // Up:1, Down: 0
 static uint8_t moving; // moving:1, station: 0
 static uint8_t userControl; // control:1
 static uint8_t waitingMoveUp; // waiting:1
+static uint8_t needMoveUp; // need:1
 
 static int32_t gCnt;
 static uint32_t gNum;
@@ -240,6 +241,13 @@ int main(void)
       {
           // moving, do nothing
           timestamp = GetTimeStampUS();
+
+          if(needMoveUp == 1)
+          {
+              needMoveUp = 0;
+              HAL_Delay(500);
+              sendPulse(gNum);
+          }
       }
     /* USER CODE END WHILE */
 
@@ -329,7 +337,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
         htim1.Instance->PSC = T_map[0];
         pulse = 0;
-        moving = 0;
+//        moving = 0;
         userControl = 0;
         direction = 0;
 
@@ -343,8 +351,12 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
             HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
             HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
             htim1.Instance->PSC = T_map[0];
-            HAL_Delay(500);
-            sendPulse(gNum);
+            needMoveUp = 1;
+//            sendPulse(gNum);
+        }
+        else
+        {
+            moving = 0;
         }
     }
     else

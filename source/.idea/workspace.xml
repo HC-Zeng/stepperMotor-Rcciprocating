@@ -14,10 +14,12 @@
     <list default="true" id="dc7217b7-cc37-4be2-8ca0-eb671e90e042" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Core/Src/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/Core/Src/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/source.elf.dir/Core/Src/main.c.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/source.elf.dir/Core/Src/main.c.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/source.bin" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/source.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/source.elf" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/source.elf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/source.hex" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/source.hex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/source.map" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/source.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/source_Increase.hex" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,14 +52,14 @@
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RunManager" selected="OpenOCD Download &amp; Run.OCD source">
-    <configuration name="source.elf" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="source" TARGET_NAME="source.elf" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="source" RUN_TARGET_NAME="source.elf">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+    <configuration name="source.elf" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="source" TARGET_NAME="source.elf" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="source" RUN_TARGET_NAME="source.elf">
       <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <list>
@@ -84,6 +86,7 @@
       <workItem from="1721815683993" duration="25000" />
       <workItem from="1728811149756" duration="181000" />
       <workItem from="1728811855240" duration="1628000" />
+      <workItem from="1728825091297" duration="2143000" />
     </task>
     <servers />
   </component>
