@@ -316,19 +316,19 @@ int main(void)
                 readVal(&temMoveRange);
                 // move down
                 moveDw(temMoveRange);
-                HAL_Delay(200);
+                HAL_Delay(300);
                 // move up
                 moveUp(temMoveRange);
                 turnNeg30();
                 // move down
                 moveDw(temMoveRange);
-                HAL_Delay(200);
+                HAL_Delay(300);
                 // move up
                 moveUp(temMoveRange);
                 turnPos60();
                 // move down
                 moveDw(temMoveRange);
-                HAL_Delay(200);
+                HAL_Delay(300);
                 // move up
                 moveUp(temMoveRange);
                 turnNeg30();
