@@ -1,3 +1,0 @@
-D:/HC/Desktop/stepperMotor-Rcciprocating/source/cmake-build-debug/CMakeFiles/source.elf.dir
-D:/HC/Desktop/stepperMotor-Rcciprocating/source/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/HC/Desktop/stepperMotor-Rcciprocating/source/cmake-build-debug/CMakeFiles/rebuild_cache.dir

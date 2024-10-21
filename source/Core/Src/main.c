@@ -58,6 +58,14 @@ static void saveValue(uint32_t val)
     HAL_FLASH_Program(TYPEPROGRAM_WORD, addr_base, val);
     HAL_FLASH_Lock();
 }
+
+uint32_t getValue()
+{
+    uint32_t val =0;
+    readVal(&val);
+    return val;
+}
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -72,6 +80,11 @@ static uint8_t moving; // moving:1, station: 0
 static uint8_t userControl; // control:1
 static uint8_t waitingMoveUp; // waiting:1
 static uint8_t needMoveUp; // need:1
+static uint8_t moveTimeCnt;
+static uint8_t continueMode; // continue:1
+static uint8_t counterMode; // counter: 1
+static uint8_t upClicked;  // clicked: 1
+static uint8_t dwClicked;  // clicked: 1
 
 static int32_t gCnt;
 static uint32_t gNum;
@@ -109,12 +122,72 @@ uint32_t getT(uint32_t num)
     return T_map[num];
 }
 
-void sendPulse(uint32_t nums)
+uint8_t isClickUp()
 {
-    gNum = nums;
-    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+    return 1-HAL_GPIO_ReadPin(Up_GPIO_Port, Up_Pin);
 }
 
+uint8_t isClickDw()
+{
+    return 1- HAL_GPIO_ReadPin(Down_GPIO_Port, Down_Pin);
+}
+
+uint8_t isClickTrg()
+{
+    return 1 - HAL_GPIO_ReadPin(Trig_GPIO_Port, Trig_Pin);
+}
+
+void moveUp(uint32_t nums)
+{
+    direction = 1;
+    HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+    HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+    gNum = nums;
+    counterMode = 1;
+    moving = 1;
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+    while (moving) { HAL_Delay(1); }  // waiting move done
+    direction = 0;
+    HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+    counterMode = 0;
+}
+
+void moveDw(uint32_t nums)
+{
+    direction = 0;
+    HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+    HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+    gNum = nums;
+    counterMode = 1;
+    moving = 1;
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+    while (moving) { HAL_Delay(1); }  // waiting move done
+    counterMode = 0;
+}
+
+void turnPos60()
+{
+    HAL_GPIO_WritePin(Dir2_GPIO_Port, Dir2_Pin, 1);
+    HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+    gNum = 534;
+    counterMode = 1;
+    moving = 1;
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
+    while (moving) { HAL_Delay(1); }  // waiting move done
+    counterMode = 0;
+}
+
+void turnNeg30()
+{
+    HAL_GPIO_WritePin(Dir2_GPIO_Port, Dir2_Pin, 0);
+    HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+    gNum = 267;
+    counterMode = 1;
+    moving = 1;
+    HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
+    while (moving) { HAL_Delay(1); }  // waiting move done
+    counterMode = 0;
+}
 /* USER CODE END 0 */
 
 /**
@@ -154,101 +227,116 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      if(1 != moving)
-      {
-          if(timestamp + 300000 < GetTimeStampUS())
-          {
-              // check user button
-              uint8_t clickUp = 1-HAL_GPIO_ReadPin(Up_GPIO_Port, Up_Pin);
-              uint8_t clickDw = 1- HAL_GPIO_ReadPin(Down_GPIO_Port, Down_Pin);
-              uint8_t clickTrg = 1 - HAL_GPIO_ReadPin(Trig_GPIO_Port, Trig_Pin);
+    if(isClickUp())
+    {
+        if(!upClicked)
+        {
+            upClicked = 1;
+            continueMode = 1;
+            direction = 1;
+            HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+            HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+            htim1.Instance->PSC = 1777;
+            HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+        }
+    }
+    else
+    {
+        if(upClicked)
+        {
+            upClicked = 0;
+            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
+            HAL_Delay(1);
+            continueMode = 0;
+            movedFlag = 1;
 
-              if(clickUp)
-              {
-                  userControl = 1;
-                  direction = 1;
-                  movedFlag = 1;
-                  HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-                  HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-                  sendPulse(1);
-              }
+            direction = 0;
+            HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+        }
+    }
 
-              if(clickDw)
-              {
-                  userControl = 1;
-                  direction = 0;
-                  movedFlag = 1;
-                  HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-                  HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-                  sendPulse(1);
-              }
-
-              if(clickTrg)
-              {
-                  if(movedFlag)
-                  {
-                      addPos(gCnt);
-                      movedFlag = 0;
-                  }
-                  else
-                  {
-                      int32_t moveRange = pos2 - pos1;
-                      if( moveRange < 0)
-                      {
-                          // just move up
-                          direction = 1;
-                          HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-                          HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-                          saveValue(-moveRange);
-                          sendPulse(-moveRange);
-                          pos1 = 0;
-                          pos2 = 0;
-                          gCnt = 0;
-                      }
-                      else if( moveRange > 0)
-                      {
-                          // move down and up
-                          direction = 0;
-                          HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-                          HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-                          saveValue(moveRange);
-                          waitingMoveUp = 1;
-                          sendPulse(moveRange);
-                          pos1 = 0;
-                          pos2 = 0;
-                          gCnt = 0;
-
-                      }
-                      else
-                      {
-                          // send NVM value
-                          uint32_t temMoveRange=0;
-                          readVal(&temMoveRange);
-                          direction = 0;
-                          HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-                          HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-                          waitingMoveUp = 1;
-                          sendPulse(temMoveRange);
-                      }
-
-                  }
-                  timestamp = GetTimeStampUS();
-
-              }
+    if(isClickDw())
+    {
+       if(!dwClicked)
+        {
+            dwClicked = 1;
+            continueMode = 1;
+            direction = 0;
+            HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
+            HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
+            htim1.Instance->PSC = 1777;
+            HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
           }
-      }
-      else
-      {
-          // moving, do nothing
-          timestamp = GetTimeStampUS();
+    }
+    else
+    {
+        if(dwClicked)
+        {
+            dwClicked = 0;
+            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
+            HAL_Delay(1);
+            continueMode = 0;
+            movedFlag = 1;
+        }
+    }
 
-          if(needMoveUp == 1)
-          {
-              needMoveUp = 0;
-              HAL_Delay(500);
-              sendPulse(gNum);
-          }
-      }
+    if(isClickTrg() && GetTimeStampUS()-timestamp>300000)
+    {
+        if(movedFlag)
+        {
+            addPos(gCnt);
+            movedFlag = 0;
+        }
+        else {
+            int32_t moveRange = pos2 - pos1;
+            if (moveRange < 0) // just move up
+            {
+                saveValue(-moveRange);
+                moveUp(-moveRange);
+                pos1 = 0;
+                pos2 = 0;
+                gCnt = 0;
+            }
+            else if (moveRange > 0) // move down and up
+            {
+                saveValue(moveRange);
+                pos1 = 0;
+                pos2 = 0;
+                gCnt = 0;
+//                // move down
+//                moveDw(moveRange);
+//                HAL_Delay(500);
+//                // move up
+//                moveUp(moveRange);
+
+            }
+            else {
+                // send NVM value
+                uint32_t temMoveRange = 0;
+                readVal(&temMoveRange);
+                // move down
+                moveDw(temMoveRange);
+                HAL_Delay(200);
+                // move up
+                moveUp(temMoveRange);
+                turnNeg30();
+                // move down
+                moveDw(temMoveRange);
+                HAL_Delay(200);
+                // move up
+                moveUp(temMoveRange);
+                turnPos60();
+                // move down
+                moveDw(temMoveRange);
+                HAL_Delay(200);
+                // move up
+                moveUp(temMoveRange);
+                turnNeg30();
+            }
+        }
+        timestamp = GetTimeStampUS();
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -298,7 +386,7 @@ void SystemClock_Config(void)
 static uint32_t pulse;
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
-    if(userControl)
+    if(continueMode)
     {
         if(direction)
         {
@@ -310,58 +398,34 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
         }
     }
 
-    pulse ++;
-
-    uint32_t centerNum = gNum/2;
-
-    if(centerNum >= 150)
+    if(counterMode)
     {
-        centerNum = 150;
-    }
-
-    if(pulse < centerNum)
-    {
-        htim1.Instance->PSC = T_map[pulse];
-    }
-    else
-    {
-        uint32_t tem_pulse = gNum - pulse;
-        if(tem_pulse < centerNum)
+        pulse ++;
+        uint32_t centerNum = gNum/2;
+        if(centerNum >= 150)
         {
-            htim1.Instance->PSC = T_map[tem_pulse];
+            centerNum = 150;
         }
-    }
-
-    if(pulse >= gNum)
-    {
-        HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
-        htim1.Instance->PSC = T_map[0];
-        pulse = 0;
-//        moving = 0;
-        userControl = 0;
-        direction = 0;
-
-        HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, 0);
-        HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 0);
-
-        if(waitingMoveUp)
+        if(pulse < centerNum)
         {
-            waitingMoveUp = 0;
-            direction = 1;
-            HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
-            HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
-            htim1.Instance->PSC = T_map[0];
-            needMoveUp = 1;
-//            sendPulse(gNum);
+            htim1.Instance->PSC = T_map[pulse];
         }
         else
         {
+            uint32_t tem_pulse = gNum - pulse;
+            if(tem_pulse < centerNum)
+            {
+                htim1.Instance->PSC = T_map[tem_pulse];
+            }
+        }
+        if(pulse >= gNum)
+        {
+            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
+            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_2);
+            htim1.Instance->PSC = T_map[0];
+            pulse = 0;
             moving = 0;
         }
-    }
-    else
-    {
-        moving = 1;
     }
 }
 /* USER CODE END 4 */
