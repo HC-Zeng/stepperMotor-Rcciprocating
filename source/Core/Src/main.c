@@ -31,6 +31,7 @@
 /* USER CODE BEGIN PTD */
 const uint32_t addr_base = 0x0800fc00;
 const uint32_t T_map[150] = {1777, 1765, 1754, 1742, 1730, 1718, 1707, 1695, 1683, 1671, 1660, 1648, 1636, 1625, 1613, 1601, 1589, 1578, 1566, 1554, 1543, 1531, 1519, 1507, 1496, 1484, 1472, 1460, 1449, 1437, 1425, 1414, 1402, 1390, 1378, 1367, 1355, 1343, 1331, 1320, 1308, 1296, 1285, 1273, 1261, 1249, 1238, 1226, 1214, 1202, 1191, 1179, 1167, 1156, 1144, 1132, 1120, 1109, 1097, 1085, 1074, 1062, 1050, 1038, 1027, 1015, 1003, 991, 980, 968, 956, 945, 933, 921, 909, 898, 886, 874, 862, 851, 839, 827, 816, 804, 792, 780, 769, 757, 745, 733, 722, 710, 698, 687, 675, 663, 651, 640, 628, 616, 605, 593, 581, 569, 558, 546, 534, 522, 511, 499, 487, 476, 464, 452, 440, 429, 417, 405, 393, 382, 370, 358, 347, 335, 323, 311, 300, 288, 276, 265, 253, 241, 229, 218, 206, 194, 182, 171, 159, 147, 136, 124, 112, 100, 89, 77, 65, 53, 42, 30};
+const uint32_t T_map_tun[150]={1777, 1769, 1761, 1753, 1745, 1737, 1729, 1721, 1713, 1705, 1697, 1689, 1681, 1673, 1665, 1657, 1649, 1641, 1633, 1625, 1617, 1609, 1601, 1593, 1585, 1577, 1569, 1561, 1553, 1545, 1537, 1529, 1521, 1513, 1505, 1497, 1489, 1481, 1473, 1465, 1457, 1449, 1441, 1433, 1425, 1417, 1409, 1401, 1393, 1385, 1377, 1369, 1361, 1353, 1345, 1337, 1329, 1321, 1313, 1305, 1297, 1289, 1281, 1273, 1265, 1257, 1249, 1241, 1233, 1225, 1217, 1209, 1201, 1193, 1185, 1177, 1169, 1161, 1153, 1145, 1137, 1129, 1121, 1113, 1105, 1097, 1089, 1081, 1073, 1065, 1057, 1049, 1041, 1033, 1025, 1017, 1009, 1001, 993, 985, 977, 969, 961, 953, 945, 937, 929, 921, 913, 905, 897, 889, 881, 873, 865, 857, 849, 841, 833, 825, 817, 809, 801, 793, 785, 777, 769, 761, 753, 745, 737, 729, 721, 713, 705, 697, 689, 681, 673, 665, 657, 649, 641, 633, 625, 617, 609, 601, 593, 585};
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -85,6 +86,7 @@ static uint8_t continueMode; // continue:1
 static uint8_t counterMode; // counter: 1
 static uint8_t upClicked;  // clicked: 1
 static uint8_t dwClicked;  // clicked: 1
+static uint8_t tuning; // tuning: 1
 
 static int32_t gCnt;
 static uint32_t gNum;
@@ -167,6 +169,7 @@ void moveDw(uint32_t nums)
 
 void turnPos60()
 {
+    tuning = 1;
     HAL_GPIO_WritePin(Dir2_GPIO_Port, Dir2_Pin, 1);
     HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
     gNum = 534;
@@ -174,11 +177,13 @@ void turnPos60()
     moving = 1;
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    tuning = 0;
     counterMode = 0;
 }
 
 void turnNeg30()
 {
+    tuning = 1;
     HAL_GPIO_WritePin(Dir2_GPIO_Port, Dir2_Pin, 0);
     HAL_GPIO_WritePin(En_GPIO_Port, En_Pin, 1);
     gNum = 267;
@@ -186,6 +191,7 @@ void turnNeg30()
     moving = 1;
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    tuning = 0;
     counterMode = 0;
 }
 /* USER CODE END 0 */
@@ -408,14 +414,29 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
         }
         if(pulse < centerNum)
         {
-            htim1.Instance->PSC = T_map[pulse];
+            if(tuning)
+            {
+                htim1.Instance->PSC = T_map_tun[pulse];
+            }
+            else
+            {
+                htim1.Instance->PSC = T_map[pulse];
+            }
+
         }
         else
         {
             uint32_t tem_pulse = gNum - pulse;
             if(tem_pulse < centerNum)
             {
-                htim1.Instance->PSC = T_map[tem_pulse];
+                if(tuning)
+                {
+                    htim1.Instance->PSC = T_map_tun[tem_pulse];
+                }
+                else
+                {
+                    htim1.Instance->PSC = T_map[tem_pulse];
+                }
             }
         }
         if(pulse >= gNum)
