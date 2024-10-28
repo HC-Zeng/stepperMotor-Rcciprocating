@@ -139,6 +139,22 @@ uint8_t isClickTrg()
     return 1 - HAL_GPIO_ReadPin(Trig_GPIO_Port, Trig_Pin);
 }
 
+void initTimer()
+{
+//    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_UPDATE);
+//    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_BREAK);
+    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_CC1);
+    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_CC2);
+//    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_COM);
+//    __HAL_TIM_CLEAR_IT(&htim1,TIM_IT_TRIGGER);
+//    HAL_NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
+//    HAL_NVIC_ClearPendingIRQ(TIM1_CC_IRQn);
+//    HAL_NVIC_ClearPendingIRQ(TIM1_TRG_COM_IRQn);
+//    HAL_NVIC_ClearPendingIRQ(TIM1_UP_IRQn);
+    __HAL_TIM_SET_COUNTER(&htim1,0);
+//    __HAL_TIM_SET_AUTORELOAD(&htim1,99);
+}
+
 void moveUp(uint32_t nums)
 {
     direction = 1;
@@ -147,8 +163,12 @@ void moveUp(uint32_t nums)
     gNum = nums;
     counterMode = 1;
     moving = 1;
+    HAL_Delay(2);
+    initTimer();
+    htim1.Instance->PSC = T_map[0];
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    HAL_Delay(2);
     direction = 0;
     HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
     counterMode = 0;
@@ -162,8 +182,12 @@ void moveDw(uint32_t nums)
     gNum = nums;
     counterMode = 1;
     moving = 1;
+    HAL_Delay(2);
+    initTimer();
+    htim1.Instance->PSC = T_map[0];
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    HAL_Delay(2);
     counterMode = 0;
 }
 
@@ -175,8 +199,12 @@ void turnPos60()
     gNum = 534;
     counterMode = 1;
     moving = 1;
+    HAL_Delay(2);
+    initTimer();
+    htim1.Instance->PSC = T_map_tun[0];
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    HAL_Delay(2);
     tuning = 0;
     counterMode = 0;
 }
@@ -189,8 +217,12 @@ void turnNeg30()
     gNum = 267;
     counterMode = 1;
     moving = 1;
+    HAL_Delay(2);
+    initTimer();
+    htim1.Instance->PSC = T_map_tun[0];
     HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_2);
     while (moving) { HAL_Delay(1); }  // waiting move done
+    HAL_Delay(2);
     tuning = 0;
     counterMode = 0;
 }
@@ -255,7 +287,6 @@ int main(void)
             HAL_Delay(1);
             continueMode = 0;
             movedFlag = 1;
-
             direction = 0;
             HAL_GPIO_WritePin(Dir_GPIO_Port, Dir_Pin, direction);
         }
@@ -441,9 +472,14 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
         }
         if(pulse >= gNum)
         {
-            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
-            HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_2);
-            htim1.Instance->PSC = T_map[0];
+            if(tuning)
+            {
+                HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_2);
+            }
+            else
+            {
+                HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
+            }
             pulse = 0;
             moving = 0;
         }
